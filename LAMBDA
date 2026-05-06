@@ -1,0 +1,146 @@
+# AWS LAMBDA + S3 TRIGGER + DYNAMODB (DETAILED STEP-BY-STEP)
+## OBJECTIVE
+Trigger a Lambda function whenever a file is uploaded to S3 and store metadata in DynamoDB.
+---
+## STEP 1: LOGIN
+1. Go to AWS Management Console  
+2. Login with your credentials  
+---
+## STEP 2: CREATE S3 BUCKET
+1. Search S3 → Open S3 Console  
+2. Click Create bucket  
+3. Enter:
+   - Bucket name: my-lambda-trigger-bucket-unique  
+   - Region: ap-south-1  
+4. Keep defaults → Click Create bucket  
+---
+## STEP 3: CREATE DYNAMODB TABLE
+1. Search DynamoDB → Open  
+2. Click Create table  
+3. Enter:
+   - Table name: newtable2  
+   - Partition key: unique (String)  
+4. Keep defaults → Click Create table  
+
+---
+
+## STEP 4: CREATE IAM ROLE FOR LAMBDA
+1. Go to IAM → Roles → Create role  
+2. Trusted entity: AWS Service  
+3. Use case: Lambda  
+4. Click Next  
+5. Attach policies:
+   - AmazonS3FullAccess  
+   - AmazonDynamoDBFullAccess  
+   - AWSLambdaBasicExecutionRole  
+6. Role name: LambdaS3DynamoRole  
+7. Click Create role  
+
+---
+
+## STEP 5: CREATE LAMBDA FUNCTION
+1. Search Lambda → Open  
+2. Click Create function  
+3. Choose Author from scratch  
+4. Enter:
+   - Function name: S3ToDynamoDB  
+   - Runtime: Python 3.x  
+   - Execution role: Use existing role → LambdaS3DynamoRole  
+5. Click Create function  
+
+---
+
+## STEP 6: ADD LAMBDA CODE
+1. Scroll to Code section  
+2. Replace existing code with:
+
+```python
+import boto3
+from uuid import uuid4
+
+def lambda_handler(event, context):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('newtable2')
+
+    if 'Records' in event:
+        for record in event['Records']:
+            bucket_name = record['s3']['bucket']['name']
+            object_key = record['s3']['object']['key']
+            size = record['s3']['object'].get('size', -1)
+            event_name = record['eventName']
+            event_time = record['eventTime']
+
+            table.put_item(
+                Item={
+                    'unique': str(uuid4()),
+                    'Bucket': bucket_name,
+                    'Object': object_key,
+                    'Size': size,
+                    'Event': event_name,
+                    'EventTime': event_time
+                }
+            )
+    else:
+        print("No S3 event received")
+
+    return {
+        "statusCode": 200,
+        "body": "Data stored in DynamoDB"
+    }
+
+---
+Click Deploy
+
+### STEP 7: ADD S3 TRIGGER
+1. Go to Lambda → Function
+2. Click Add trigger
+3. Select S3
+4. Configure:
+  Bucket: my-lambda-trigger-bucket-unique
+  Event type: All object create events
+Enable trigger
+Click Add
+
+---
+
+### STEP 8: TEST (REAL-TIME TESTING)
+1. UPLOAD FILE TO S3
+2. Go to S3 → Open your bucket
+3. Click Upload
+4. Add any file (e.g., test.txt)
+5. Click Upload
+
+---
+###  STEP 9: VERIFY LAMBDA EXECUTION
+Go to Lambda → Your function
+Click Monitor tab
+Click View logs in CloudWatch
+Open latest log stream
+Check for execution success
+---
+### STEP 10: VERIFY DYNAMODB OUTPUT
+Go to DynamoDB → Tables
+Open table: newtable2
+Click Explore table items
+
+You should see a new record like:
+
+    unique: random-id
+    Bucket: my-lambda-trigger-bucket-unique
+    Object: test.txt
+    Size: <file size>
+    Event: ObjectCreated:Put
+    EventTime: <timestamp>
+---
+ ### EXPECTED RESULT
+
+Uploading file to S3 triggers Lambda automatically
+Lambda processes event
+Data is stored in DynamoDB
+COMMON ERRORS
+Access Denied → Check IAM Role permissions
+No trigger → Verify S3 trigger is enabled
+No data in DynamoDB → Check table name in code
+
+CONCLUSION
+Fully automated pipeline: S3 → Lambda → DynamoDB
