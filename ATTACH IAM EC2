@@ -1,0 +1,55 @@
+# ATTACH IAM ROLE TO EC2 INSTANCE (S3 ACCESS WITHOUT KEYS)
+## OBJECTIVE
+Provide secure access to Amazon S3 from an EC2 instance using an IAM Role (no access keys required).
+---
+## STEP 1: CREATE IAM ROLE
+1. Open AWS Management Console  
+2. Go to IAM  
+3. Click Roles  
+4. Click Create role  
+5. Select Trusted entity: AWS Service  
+6. Use case: EC2  
+7. Click Next  
+---
+## STEP 2: ADD PERMISSIONS
+1. Search for policy: AmazonS3FullAccess  
+2. Select the policy  
+3. Click Next  
+---
+## STEP 3: NAME THE ROLE
+1. Role name: EC2-S3-Role  
+2. Click Create role  
+---
+## STEP 4: ATTACH ROLE TO EC2 INSTANCE
+1. Go to EC2 Dashboard  
+2. Select your running instance  
+3. Click Actions  
+4. Navigate: Security → Modify IAM role  
+5. Select role: EC2-S3-Role  
+6. Click Update  
+---
+## STEP 5: VERIFY FROM EC2 INSTANCE (NO ACCESS KEYS)
+### Connect to EC2 Instance
+1. Open terminal / SSH into instance  
+### Run Commands
+sudo apt update
+sudo apt install awscli
+---
+#### List S3 Buckets
+aws s3 ls
+aws ec2 describe-instances
+#### Create a new S3 Bucket
+aws s3 mb s3://your-unique-bucket-name
+---
+
+## EXPECTED RESULT
+- EC2 instance can access S3 without access keys  
+- Temporary credentials are automatically provided by IAM role  
+- Secure and recommended method for AWS access  
+
+---
+
+## CONCLUSION
+- IAM Roles eliminate need for storing access keys  
+- Provides secure, temporary access to AWS services  
+- Best practice for EC2 to S3 communication  
