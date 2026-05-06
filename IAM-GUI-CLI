@@ -1,0 +1,121 @@
+# IAM USER CREATION WITH GUI & CLI ACCESS (AWS)
+
+## PART A: CREATE IAM USER (GUI ACCESS)
+
+### STEP 1: LOGIN AS ROOT USER
+1. Go to AWS Management Console  
+2. Login as Root User  
+
+---
+
+### STEP 2: OPEN IAM
+1. Search for IAM  
+2. Click IAM (Security, Identity, & Compliance)  
+
+---
+
+### STEP 3: CREATE USER
+1. Go to Users  
+2. Click Create user  
+
+---
+
+### STEP 4: USER DETAILS
+1. Enter User name: S3_Specialist  
+2. Enable: Provide user access to AWS Management Console  
+3. Set custom password  
+
+---
+
+### STEP 5: SET PERMISSIONS
+1. Select Attach policies directly  
+2. Search and select: AmazonS3FullAccess  
+
+---
+
+### STEP 6: REVIEW & CREATE
+1. Click Next → Create user  
+2. Download the .csv file (important credentials)  
+
+---
+
+### STEP 7: SIGN OUT & LOGIN AS IAM USER
+1. Copy Account ID (12-digit)  
+2. Sign out  
+3. Use Sign-in URL from .csv OR IAM login page  
+4. Enter:
+   - Account ID  
+   - Username  
+   - Password  
+
+---
+
+### TESTING PERMISSIONS
+
+#### TEST 1 (FAILURE)
+1. Go to EC2  
+2. Try viewing instances  
+Result: Access Denied / API Error  
+
+#### TEST 2 (SUCCESS)
+1. Go to S3  
+2. Create a bucket  
+Result: Success  
+
+---
+
+## PART B: CLI ACCESS (PROGRAMMATIC ACCESS)
+
+### STEP 1: GENERATE ACCESS KEYS
+1. Go to IAM → Users  
+2. Click your user  
+3. Open Security credentials tab  
+4. Scroll to Access keys  
+5. Click Create access key  
+6. Select: Command Line Interface (CLI)  
+7. Download .csv (contains keys)  
+
+---
+
+### STEP 2: INSTALL AWS CLI (WINDOWS)
+Run in Command Prompt:
+
+msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
+msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi/qn
+aws --version
+
+---
+
+### STEP 3: CONFIGURE AWS CLI
+1. Open CMD / Terminal  
+2. Run:
+aws configure
+
+3. Enter:
+- Access Key ID  
+- Secret Access Key  
+- Default region: ap-south-1  
+- Default output: json  
+
+---
+
+### STEP 4: TEST CLI PERMISSIONS
+
+#### TEST 1 (EC2 - FAILURE)
+aws ec2 describe-instances
+Result: AccessDenied error  
+
+---
+
+#### TEST 2 (S3 - SUCCESS)
+aws s3 ls
+aws s3 mb s3://your-unique-bucket-name
+
+Result: Success  
+
+---
+
+## CONCLUSION
+- IAM user has restricted access (only S3)  
+- GUI and CLI both enforce same permissions  
+- EC2 access denied, S3 operations allowed  
