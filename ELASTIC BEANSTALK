@@ -1,0 +1,76 @@
+# AWS ELASTIC BEANSTALK (EASY STEP-BY-STEP)
+## WHAT IS ELASTIC BEANSTALK?
+Platform as a Service (PaaS) to deploy web applications without managing servers.
+---
+## PREREQUISITE
+- Your application file ready (.war / .zip / code)
+---
+## STEP 1: OPEN ELASTIC BEANSTALK
+1. Go to AWS Console  
+2. Search Elastic Beanstalk  
+3. Click Elastic Beanstalk  
+4. Click Create application  
+---
+## STEP 2: CREATE APPLICATION
+1. Application name: MyApp  
+2. Description: (optional)  
+3. Click Create  
+---
+## STEP 3: CREATE ENVIRONMENT
+1. Click Create environment  
+2. Select Web server environment  
+3. Click Select  
+---
+## STEP 4: CONFIGURE ENVIRONMENT
+1. Environment name: MyApp-env  
+2. Choose platform:
+   - Tomcat (for .war)  
+   - Node.js / Python / PHP (based on your app)  
+3. Under Application code:
+   - Select Upload your code  
+   - Upload your .war or .zip file  
+---
+## STEP 5: CONFIGURE SERVICE ACCESS
+1. Service role: Select existing (LabRole)  
+2. EC2 Key pair: Optional  
+3. EC2 Instance profile: LabInstanceProfile  
+---
+## STEP 6: CONFIGURE NETWORK
+1. VPC: Default  
+2. Subnets: Default  
+3. Enable Public IP  
+---
+## STEP 7: INSTANCE & SCALING
+1. Instance type: t2.micro  
+2. Min instances: 1  
+3. Max instances: 2  
+4. Load balancer: Enabled (recommended)  
+---
+## STEP 8: REVIEW & CREATE
+1. Click Review  
+2. Click Create  
+---
+## DEPLOYMENT (AUTOMATIC)
+AWS will create:
+- EC2 instance  
+- Load balancer  
+- Auto Scaling group  
+- Security groups  
+---
+## ACCESS YOUR APPLICATION
+1. After deployment completes  
+2. Copy the provided URL  
+3. Open in browser  
+Your application will run 🎉  
+---
+## UPDATE APPLICATION
+1. Go to your environment  
+2. Click Upload and Deploy  
+3. Upload new version  
+---
+## RESULT
+- App deployed without managing servers  
+- Auto scaling + load balancing handled automatically  
+---
+## ONE-LINE UNDERSTANDING
+Upload code → Beanstalk handles everything → App runs on cloud
