@@ -24,20 +24,6 @@ Trigger a Lambda function whenever a file is uploaded to S3 and store metadata i
 
 ---
 
-## STEP 4: CREATE IAM ROLE FOR LAMBDA
-1. Go to IAM → Roles → Create role  
-2. Trusted entity: AWS Service  
-3. Use case: Lambda  
-4. Click Next  
-5. Attach policies:
-   - AmazonS3FullAccess  
-   - AmazonDynamoDBFullAccess  
-   - AWSLambdaBasicExecutionRole  
-6. Role name: LambdaS3DynamoRole  
-7. Click Create role  
-
----
-
 ## STEP 5: CREATE LAMBDA FUNCTION
 1. Search Lambda → Open  
 2. Click Create function  
@@ -45,7 +31,7 @@ Trigger a Lambda function whenever a file is uploaded to S3 and store metadata i
 4. Enter:
    - Function name: S3ToDynamoDB  
    - Runtime: Python 3.x  
-   - Execution role: Use existing role → LambdaS3DynamoRole  
+   - Additional Settings -> Execution role: Use existing role → LambdaS3DynamoRole  
 5. Click Create function  
 
 ---
@@ -59,6 +45,8 @@ import boto3
 from uuid import uuid4
 
 def lambda_handler(event, context):
+    # Initialize DynamoDB resource
+    print("Connecting to DynamoDB...")
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('newtable2')
 
@@ -70,6 +58,12 @@ def lambda_handler(event, context):
             event_name = record['eventName']
             event_time = record['eventTime']
 
+            # Print 1: Notify that the S3 object has been detected
+            print(f"🎉 Object uploaded: '{object_key}' into bucket: '{bucket_name}'")
+
+            # Print 2: Notify before inserting into DynamoDB
+            print(f"Saving metadata for '{object_key}' into DynamoDB table 'newtable2'...")
+
             table.put_item(
                 Item={
                     'unique': str(uuid4()),
@@ -80,6 +74,9 @@ def lambda_handler(event, context):
                     'EventTime': event_time
                 }
             )
+
+            # Print 3: Notify after a successful write
+            print(f"✅ Successfully wrote to DynamoDB for object: '{object_key}'")
     else:
         print("No S3 event received")
 
@@ -87,6 +84,7 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "body": "Data stored in DynamoDB"
     }
+
 
 ---
 Click Deploy
