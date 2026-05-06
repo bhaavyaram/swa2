@@ -1,0 +1,266 @@
+# AWS SNS + SQS + S3 + LAMBDA (EASY & COMPLETE GUIDE)
+
+## AIM
+Build event-driven system:  
+S3 Upload → SNS → SQS → Lambda → Processing
+
+---
+
+# PART 1: SNS (EMAIL NOTIFICATION)
+
+## STEP 1: CREATE SNS TOPIC
+1. Go to AWS Console → Search SNS  
+2. Click Topics → Create topic  
+3. Type: Standard  
+4. Name: MyEmailTopic  
+5. Click Create  
+
+---
+
+## STEP 2: CREATE EMAIL SUBSCRIPTION
+1. Open MyEmailTopic  
+2. Go to Subscriptions → Create subscription  
+3. Protocol: Email  
+4. Endpoint: your email  
+5. Click Create  
+
+---
+
+## STEP 3: CONFIRM EMAIL
+1. Open your email  
+2. Click Confirm subscription link  
+
+---
+
+## STEP 4: TEST SNS
+1. Open topic → Click Publish message  
+2. Subject: Test  
+3. Message: Hello SNS  
+4. Click Publish  
+
+✅ You should receive email  
+
+---
+
+# PART 2: S3 → SNS → EMAIL
+
+## STEP 5: CREATE S3 BUCKET
+1. Go to S3 → Create bucket  
+2. Name: my-upload-bucket-123  
+3. Region: SAME as SNS  
+4. Click Create  
+
+---
+
+## STEP 6: ADD S3 EVENT → SNS
+1. Open bucket → Properties  
+2. Scroll to Event notifications  
+3. Click Create event notification  
+
+Configure:
+- Name: UploadEvent  
+- Event: All object create events  
+- Destination: SNS Topic → MyEmailTopic  
+
+4. Click Save  
+
+---
+
+## STEP 7: TEST
+1. Upload file to S3  
+2. Check email  
+
+✅ You get notification  
+
+---
+
+# PART 3: SQS (QUEUE)
+
+## STEP 8: CREATE SQS QUEUE
+1. Search SQS  
+2. Click Create queue  
+3. Type: Standard  
+4. Name: MyQueue  
+5. Click Create  
+
+---
+
+## STEP 9: SEND MESSAGE
+1. Open MyQueue  
+2. Click Send and receive messages  
+3. Enter:
+Hello SQS test
+4. Click Send  
+
+---
+
+## STEP 10: RECEIVE MESSAGE
+1. Click Poll for messages  
+2. View message  
+3. (Optional) Delete message  
+
+---
+
+# PART 4: S3 → SNS → SQS → LAMBDA
+
+## ARCHITECTURE
+S3 → SNS → SQS → Lambda
+
+---
+
+## STEP 11: CREATE S3 BUCKET
+Name: mys3eventbucket123  
+
+---
+
+## STEP 12: CREATE SNS TOPIC
+Name: MyS3SNSTopic  
+
+---
+
+## STEP 13: CREATE SQS QUEUE
+Name: MyS3Queue  
+
+---
+
+## STEP 14: CONNECT SNS → SQS
+1. Open MyS3SNSTopic  
+2. Click Create subscription  
+
+Configure:
+- Protocol: Amazon SQS  
+- Endpoint: MyS3Queue  
+
+3. Click Create  
+
+---
+
+## STEP 15: ADD PERMISSION (SQS POLICY)
+
+Go to SQS → MyS3Queue → Access Policy → Edit
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "sns.amazonaws.com" },
+      "Action": "SQS:SendMessage",
+      "Resource": "SQS_QUEUE_ARN",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "SNS_TOPIC_ARN"
+        }
+      }
+    }
+  ]
+}
+
+Replace:
+
+SQS_QUEUE_ARN
+SNS_TOPIC_ARN
+---
+### STEP 16: ADD PERMISSION (SNS POLICY)
+
+Go to SNS → MyS3SNSTopic → Edit access policy
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "s3.amazonaws.com" },
+      "Action": "SNS:Publish",
+      "Resource": "SNS_TOPIC_ARN",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "S3_BUCKET_ARN"
+        }
+      }
+    }
+  ]
+}
+
+
+Replace:
+
+SNS_TOPIC_ARN
+S3_BUCKET_ARN
+ ---
+### STEP 17: CONNECT S3 → SNS
+Open S3 bucket
+Properties → Event notifications
+Create event
+
+Configure:
+
+Event: All object create events
+Destination: SNS → MyS3SNSTopic
+
+### STEP 18: TEST FLOW
+Upload file to S3
+Flow:
+S3 → SNS → SQS
+
+---
+### STEP 19: VERIFY SQS
+Open MyS3Queue
+Click Poll for messages
+
+✅ You should see JSON event message
+---
+
+PART 5: LAMBDA (CONSUMER)
+
+ ### STEP 20: CREATE LAMBDA
+  Search Lambda
+  Click Create function
+  Name: SQSConsumerFunction
+  Runtime: Python
+  Click Create
+  STEP 21: ADD SQS TRIGGER
+  Open function
+  Click Add trigger
+  Select SQS
+  Choose MyS3Queue
+  Click Add
+
+### STEP 22: ADD CODE
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+        print("Message from SQS:")
+        print(record['body'])
+
+    return {
+        'statusCode': 200,
+        'body': 'Processed'
+    }
+
+Click Deploy
+
+---
+### STEP 23: FINAL TEST
+Upload file to S3
+Flow:
+S3 → SNS → SQS → Lambda
+---
+### STEP 24: VERIFY LAMBDA
+Go to Lambda → Monitor
+Click View logs (CloudWatch)
+
+You will see:
+
+Message from SQS:
+{S3 event JSON}
+---
+FINAL RESULT
+
+When file uploaded:
+
+S3 triggers event
+SNS sends notification
+SQS stores message
+Lambda processes message
