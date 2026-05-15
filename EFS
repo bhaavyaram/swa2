@@ -1,0 +1,133 @@
+# WEEK – 3  
+# Elastic File Sharing (EFS)
+## Aim
+To create an Amazon EFS file system and share files between two EC2 instances.
+
+# Create EC2 Instances
+
+## Instance 1
+
+- Open AWS Console → Search **EC2**
+- Click **Launch Instance**
+- Instance name:
+efslab-1
+
+- Select **Amazon Linux** AMI
+- Create a new key pair
+- Under Network Settings:
+  - Availability Zone:
+us-east-1a
+
+- Create new security group:
+efslab
+
+- Add inbound rule:
+  - Type:
+NFS
+  - Source:
+Anywhere
+- Launch instance
+
+
+## Instance 2
+
+- Launch another EC2 instance
+- Instance name:
+efslab-2
+
+- Select **Amazon Linux** AMI
+- Use same key pair
+- Under Network Settings:
+  - Availability Zone:
+
+us-east-1b
+  - Select existing security group:
+efslab
+
+- Launch instance
+
+# Create EFS File System
+
+- Search:
+EFS
+- Click:
+Create File System
+
+- Enter file system name
+- Click:
+Create File System
+
+- Select created file system
+- Click:
+
+View Details
+- Go to:
+
+Network → Manage
+- Ensure mount targets are available for both:
+  - `us-east-1a`
+  - `us-east-1b`
+
+# Connect Instance-1 to EFS
+
+- Connect to Instance-1 using SSH
+ssh -i "key.pem" ec2-user@PUBLIC_IP
+
+- Install EFS utilities:
+sudo yum install -y amazon-efs-utils
+
+- Create directory:
+sudo mkdir /efslab
+
+- In EFS Console:
+  - Click:
+Attach
+- Copy the NFS client command
+
+Example:
+sudo mount -t efs fs-xxxx:/ /efslab
+- Paste and run the command
+
+- Move into directory:
+cd /efslab
+
+- Create file:
+touch file.txt
+
+- Edit file:
+nano file.txt
+Add some text and save.
+
+
+# Connect Instance-2 to EFS
+
+- Connect to Instance-2
+
+```powershell
+ssh -i "key.pem" ec2-user@PUBLIC_IP
+```
+- Install EFS utilities:
+sudo yum install -y amazon-efs-utils
+
+- Create directory:
+sudo mkdir /efslab
+
+- Paste the same NFS mount command:
+sudo mount -t efs fs-xxxx:/ /efslab
+
+- Move into directory:
+cd /efslab
+
+- List files:
+ls
+
+You will see:
+file.txt
+
+- Display file content:
+cat file.txt
+
+The content created in Instance-1 will appear.
+# Result
+
+Successfully created an Amazon EFS file system and shared files between two EC2 instances located in different Availability Zones.
