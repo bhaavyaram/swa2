@@ -1,0 +1,358 @@
+# WEEK – 2  
+# Amazon EBS Volume Management and EC2 Scaling
+## Aim
+1. Create an EC2 instance.
+2. Scale the instance by changing the instance type.
+3. Create and attach an EBS volume to the EC2 instance.
+4. Create and attach the same EBS volume to another EC2 instance in the same AWS region.
+5. Create a snapshot of the EBS volume and copy it to another AWS region.
+6. Create a new volume from the snapshot and attach it to an EC2 instance in another region.
+---
+# Part A — Create an EC2 Instance
+
+## Step 1
+Open AWS Console:
+https://aws.amazon.com
+Login to your AWS account.
+## Step 2
+In the top search bar, type:
+EC2
+Click **EC2**.
+## Step 3
+In the left sidebar:
+Instances → Launch Instances
+## Step 4
+Under **Name and tags**, enter:
+Instance-A
+## Step 5
+Under **Application and OS Images (AMI)**:
+- Select **Ubuntu**
+- Leave default Ubuntu Server LTS
+## Step 6
+Under **Instance type**, select:
+t2.nano
+## Step 7
+Under **Key pair (login)**:
+Click:
+Create new key pair
+Use:
+| Setting | Value |
+|---|---|
+| Key pair name | `ebslabkey` |
+| Key pair type | RSA |
+| Private key format | `.pem` |
+Click:
+Create key pair
+The `.pem` file downloads automatically.
+## Step 8
+Under **Network settings**, ensure:
+Allow SSH traffic from Anywhere (0.0.0.0/0)
+is checked.
+## Step 9
+Click:
+Launch Instance
+## Step 10
+Click:
+View All Instances
+Wait until:
+Instance State: Running
+Status Checks: 2/2 Passed
+
+# Part B — Scale the EC2 Instance
+
+## Step 11
+Select the EC2 instance.
+## Step 12
+Click:
+Instance State → Stop Instance
+Wait until instance state becomes:
+Stopped
+## Step 13
+Click:
+Actions → Instance Settings → Change Instance Type
+## Step 14
+Select a larger instance type.
+Example:
+t2.micro
+or
+t2.small
+## Step 15
+Click:
+Apply
+## Step 16
+Start the instance again:
+Instance State → Start Instance
+The instance now has increased CPU and RAM.
+
+---
+
+# Part C — Create and Attach an EBS Volume
+
+## Step 17
+In the EC2 Dashboard left sidebar:
+Elastic Block Store → Volumes
+## Step 18
+Click:
+Create Volume
+## Step 19
+Configure the volume.
+Example settings:
+| Setting | Value |
+|---|---|
+| Volume Type | gp3 |
+| Size | 10 GiB |
+| Availability Zone | Same as EC2 instance |
+
+> IMPORTANT: The Availability Zone must match the EC2 instance AZ.
+
+## Step 20
+Click:
+Create Volume
+
+# Part D — Attach EBS Volume to EC2 Instance
+
+## Step 21
+Select the newly created volume.
+## Step 22
+Click:
+Actions → Attach Volume
+## Step 23
+Select:
+
+| Field | Value |
+|---|---|
+| Instance | Instance-A |
+| Device Name | `/dev/sdf` |
+
+## Step 24
+Click:
+Attach Volume
+
+# Part E — Connect to EC2 Using SSH
+
+## Step 25
+Select the EC2 instance.
+Copy the:
+Public IPv4 Address
+## Step 26
+Open PowerShell.
+Navigate to the folder containing the `.pem` file.
+Example:
+cd Downloads
+
+## Step 27
+Connect using SSH.
+ssh -i "ebslabkey.pem" ubuntu@YOUR_PUBLIC_IP
+
+Example:
+ssh -i "ebslabkey.pem" ubuntu@54.90.10.20
+
+Type:
+yes
+if prompted.
+
+# Part F — Verify the Attached EBS Volume
+
+## Step 28
+Check available disks:
+lsblk
+## Step 29
+Check filesystem details:
+lsblk -fs
+# Part G — Create Partition on the New Volume
+
+## Step 30
+Run:
+sudo fdisk /dev/nvme1n1
+## Step 31
+Inside fdisk:
+Press:
+m
+to view help menu.
+## Step 32
+Create partition using:
+n → p → Enter → Enter → Enter
+## Step 33
+Save changes:
+w
+
+# Part H — Format the Partition
+
+## Step 34
+Format the new partition:
+sudo mkfs.ext4 /dev/nvme1n1p1
+
+# Part I — Create Mount Directory
+
+## Step 35
+Create mount directory:
+sudo mkdir /mnt/ebstry
+# Part J — Mount the Volume
+## Step 36
+Mount the partition:
+sudo mount /dev/nvme1n1p1 /mnt/ebstry
+## Step 37
+Verify mount:
+df -h
+## Step 38
+Verify blocks:
+lsblk
+# Part K — Create Data on Volume
+## Step 39
+Create a sample file:
+sudo touch /mnt/ebstry/testfile.txt
+## Step 40
+Verify:
+ls /mnt/ebstry
+# Part L — Detach Volume and Attach to Another Instance in Same Region
+
+## Step 41
+Go to EC2 Console.
+## Step 42
+Select the volume.
+## Step 43
+Click:
+Actions → Detach Volume
+# Part M — Create Another EC2 Instance
+
+## Step 44
+Launch another EC2 instance.
+
+Name:
+Instance-B
+Use same:
+- AMI
+- Key pair
+- Availability Zone
+
+# Part N — Attach Volume to Instance-B
+
+## Step 45
+Go to:
+Volumes
+Select the detached volume.
+## Step 46
+Click:
+Actions → Attach Volume
+## Step 47
+Instance-B
+Click:
+Attach Volume
+# Part O — Connect to Instance-B
+
+Copy Public IPv4 of Instance-B.
+Open PowerShell and connect:
+ssh -i "ebslabkey.pem" ubuntu@INSTANCE_B_IP
+
+# Part P — Mount Existing Volume on Instance-B
+
+Verify attached disk:
+lsblk
+Create mount directory:
+sudo mkdir /mnt/ebstry
+Mount volume:
+sudo mount /dev/nvme1n1p1 /mnt/ebstry
+## Step 53
+Verify data:
+ls /mnt/ebstry
+The previous data should be available.
+
+# Part Q — Create Snapshot of EBS Volume
+
+## Step 54
+Detach the volume from Instance-B.
+Actions → Detach Volume
+Select the volume.
+Click:
+Actions → Create Snapshot
+Enter snapshot name.
+ebs-snapshot
+Click:
+Create Snapshot
+
+# Part R — Copy Snapshot to Another Region
+
+Go to:
+Elastic Block Store → Snapshots
+Select the snapshot.
+Click:
+Actions → Copy Snapshot
+Choose destination region:
+US West (Oregon)
+Click:
+Copy Snapshot
+Wait for completion.
+# Part S — Switch to Destination Region
+
+
+From top-right AWS region selector:
+Switch to:
+Oregon (us-west-2)
+
+# Part T — Create Volume from Snapshot
+
+## Step 64
+Go to:
+Snapshots
+Select copied snapshot.
+## Step 65
+Click:
+Actions → Create Volume from Snapshot
+Select Availability Zone.
+Click:
+Create Volume
+
+# Part U — Launch New EC2 Instance in Destination Region
+
+Create a new EC2 instance in Oregon region.
+Example name:
+Instance-Oregon
+Use Ubuntu AMI.
+
+---
+
+# Part V — Attach Volume to New Instance
+
+## Step 68
+Go to:
+Volumes
+Select the new volume.
+## Step 69
+Click:
+Actions → Attach Volume
+## Step 70
+Select:
+Instance-Oregon
+Click:
+Attach Volume
+
+# Part W — Connect to Oregon Instance
+
+## Step 71
+Copy Public IPv4 address.
+Open PowerShell:
+ssh -i "ebslabkey.pem" ubuntu@OREGON_INSTANCE_IP
+
+# Part X — Mount the Volume
+
+Verify attached disk:
+lsblk
+
+Create mount directory:
+sudo mkdir /mnt/ebstry
+
+Mount the volume:
+sudo mount /dev/nvme1n1p1 /mnt/ebstry
+
+Verify mounted storage:
+df -h
+
+# Result
+Successfully:
+
+- Created and scaled an EC2 instance
+- Created and attached an EBS volume
+- Mounted the volume in Linux
+- Shared the volume between EC2 instances
+- Created and copied snapshots across regions
+- Restored and mounted the volume in another AWS region
