@@ -1,0 +1,226 @@
+# Experiment 1 — EC2 Instance Creation and Connection
+**Lab:** Cloud Computing Lab  
+**Week:** 1  
+
+## Aim
+To create an Amazon EC2 instance and connect to it using:
+
+1. Browser-based EC2 Instance Connect  
+2. PuTTY via SSH  
+---
+
+# Part A: Create an EC2 Instance
+This part is common for both the Browser and PuTTY connection methods.
+### Step 1
+Go to https://aws.amazon.com and sign in to your student AWS account.
+### Step 2
+In the top search bar, type **EC2** and click **EC2**.
+### Step 3
+In the left sidebar, click:
+`Instances → Launch instances`
+### Step 4
+Under **Name and tags**, enter a name for your instance.
+Example:
+Linux-ec2
+
+### Step 5
+Under **Application and OS Images (Amazon Machine Image)**:
+- Select the **Ubuntu** tile from the **Quick Start** tab.
+- Leave the default **Ubuntu Server LTS** version selected.
+> **Note:** The AMI ID is region-specific and changes between AWS regions.
+### Step 6
+Under **Instance type**, leave the default:
+t3.micro
+It is marked **Free tier eligible**.
+### Step 7
+Under **Key pair (login)**, click **Create new key pair**.
+Use the following settings:
+| Setting | Value |
+|---|---|
+| Key pair name | `ubuntuppklab` |
+| Key pair type | RSA |
+| Private key file format | `.pem` |
+> Choose `.pem` for both Browser and PuTTY methods.  
+> For PuTTY, the `.pem` file will later be converted to `.ppk`.
+
+Click **Create key pair**.
+
+The `.pem` file will automatically download to your computer.
+
+### Step 8
+Under **Network settings**, keep the default configuration.
+Ensure the following option is checked:
+Allow SSH traffic from: Anywhere (0.0.0.0/0)
+
+### Step 9
+Click the orange **Launch instance** button.
+### Step 10
+Click **View all instances**.
+Wait until the instance status becomes:
+
+Instance state: Running
+Status check: 2/2 checks passed
+
+> This usually takes 1–2 minutes.
+
+---
+
+# Part B: Method 1 — Connect via Browser (EC2 Instance Connect)
+
+No software installation is required for this method.
+### Step 11
+In the **Instances** list, select your instance by checking the checkbox.
+
+### Step 12
+Click the **Connect** button at the top.
+
+### Step 13
+Stay on the **EC2 Instance Connect** tab.
+
+Use the following settings:
+
+| Setting | Value |
+|---|---|
+| Connection type | Connect using Public IP |
+| Username | `ubuntu` |
+
+### Step 14
+Click the orange **Connect** button.
+
+### Step 15
+A new browser tab opens with a terminal window.
+
+You should see a prompt similar to:
+
+```bash
+ubuntu@ip-172-31-16-28:~$
+```
+
+✅ You have successfully connected to your EC2 instance using the browser.
+
+---
+
+# Part C: Method 2 — Connect via PuTTY (SSH)
+---
+# Step C2: Convert `.pem` to `.ppk` using PuTTYgen
+
+PuTTY requires a `.ppk` file instead of `.pem`.
+
+### Step 20
+Press the Windows key, search for:
+PuTTYgen
+Open it.
+
+### Step 21
+Click:
+Load
+
+### Step 22
+In the file browser:
+
+- Change file type from:
+
+PuTTY Private Key Files (*.ppk)
+to:
+All Files (*.*)
+
+### Step 23
+Select your `.pem` file and click **Open**.
+
+Example:
+ubuntuppklab.pem
+
+A success popup appears — click **OK**.
+
+### Step 24
+Click:
+Save private key
+If prompted about saving without a passphrase, click:
+Yes
+
+### Step 25
+Save the file as:
+ubuntuppklab.ppk
+
+✅ Your `.ppk` file is now ready.
+
+---
+
+# Step C3: Connect to EC2 using PuTTY
+
+### Step 26
+In the AWS EC2 Console:
+
+- Select your instance
+- Under the **Details** tab
+- Copy the **Public IPv4 address**
+
+Example:
+3.80.72.174
+
+> **Important:** The public IP changes whenever the instance is stopped and restarted.
+
+### Step 27
+Search for and open
+PuTTY
+
+### Step 28
+In the **PuTTY Configuration** window:
+
+| Field | Value |
+|---|---|
+| Host Name (or IP address) | Paste EC2 Public IPv4 |
+| Port | `22` |
+| Connection type | SSH |
+
+### Step 29
+Navigate to:
+Connection → SSH → Auth → Credentials
+
+### Step 30
+Under:
+Private key file for authentication
+Click **Browse** and select:
+ubuntuppklab.ppk
+
+### Step 31
+Go back to:
+Session
+Click:
+Open
+
+### Step 32
+A security alert popup appears.
+Click:
+Accept
+
+### Step 33
+At the login prompt, type:
+ubuntu
+Press **Enter**.
+
+### Step 34
+You should now see the Ubuntu welcome screen and a prompt similar to:
+ubuntu@ip-172-31-31-90:~$
+
+✅ You have successfully connected to your EC2 instance using PuTTY.
+
+---
+
+# Notes
+
+- If you already created an instance using the Browser method, you can reuse the same instance and `.pem` file for PuTTY.
+- To stop the instance:
+
+```text
+EC2 Console → Instances → Select instance → Instance state → Stop instance
+```
+
+- Avoid clicking:
+
+```text
+Terminate
+```
+
+unless you want to permanently delete the instance.
+````
